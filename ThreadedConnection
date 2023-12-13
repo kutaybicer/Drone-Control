@@ -1,0 +1,187 @@
+
+package ee402;
+
+import java.net.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.*;
+
+public class ThreadedConnectionHandler extends Thread implements ActionListener, WindowListener, AdjustmentListener, Serializable
+{
+    private Socket clientSocket = null;			
+    private ObjectInputStream is = null;		
+    private ObjectOutputStream os = null;		
+    private ThreadedServer serverr;
+    
+    private Drone copy;
+    
+    public static int controlx,controlx2,controly,controly2,controlz,controlz2;
+    
+    public  ThreadedConnectionHandler(Socket clientSocket, ThreadedServer serverr) {
+    	
+        this.clientSocket = clientSocket;
+        this.serverr = serverr;
+        
+    }
+
+
+    public void run() {
+         try {
+            this.is = new ObjectInputStream(clientSocket.getInputStream());
+            this.os = new ObjectOutputStream(clientSocket.getOutputStream());
+            while (this.readCommand()) {}
+         } 
+         catch (IOException e) 
+         {
+        	System.out.println("XX. There was a problem with the Input/Output Communication:");
+            e.printStackTrace();
+         }
+    }
+
+
+    private boolean readCommand() {
+        Drone s = null;
+        try {
+            s = (Drone) is.readObject();
+        } 
+        catch (Exception e){    
+        	this.closeSocket();
+            return false;
+        }
+   System.out.println("01. <- Received a Drone object from the client (" + s + ").");
+   System.out.println("Drone x value is : "+s.x);
+   System.out.println("Drone y value is : "+s.y);
+   System.out.println("Drone z value is : "+s.z);  
+  
+   copy = s;
+   
+   draw();
+
+     this.communication(); 
+
+     return true;
+   }
+
+     private void communication() {	
+        this.send(copy);
+    }
+
+    private void send(Object o) {
+        try {
+            System.out.println("02. -> Sending (" + o +") to the client.");
+            this.os.writeObject(o);
+            this.os.flush();
+        } 
+        catch (Exception e) {
+            System.out.println("XX." + e.getStackTrace());
+        }
+    }
+    
+
+    public void sendError(String message) { 
+        this.send("Error:" + message);	
+    }
+    
+    public void closeSocket() { 
+        try {
+            this.os.close();
+            this.is.close();
+            this.clientSocket.close();
+        } 
+        catch (Exception e) {
+            System.out.println("XX. " + e.getStackTrace());
+        }
+    }
+    
+    public void draw() {
+    	
+    	if (copy.name == 'A') {
+    		serverr.display.setxyvalues(copy.x,copy.y);
+    		
+    		controlx = copy.x;
+    		controly = copy.y;
+    		controlz = copy.z;
+    		
+    		if (Math.abs(controlx - controlx2)<= 20 && Math.abs(controly - controly2)<= 20 && Math.abs(controlz - controlz2)<= 20) {
+    	
+    			serverr.crashreport.setText("Warning!! Drones are too close");
+    		}
+    		else {
+    			serverr.crashreport.setText("Drones are safe");
+    		}
+    	}
+    	if (copy.name == 'B') {
+    		serverr.display.setxyvalues2(copy.x,copy.y);
+    		
+    		controlx2 = copy.x;
+    		controly2 = copy.y;
+    		controlz2 = copy.z;
+    		
+    		if (Math.abs(controlx - controlx2)<= 20 && Math.abs(controly - controly2)<= 20 && Math.abs(controlz - controlz2)<= 20) {
+ 
+    			serverr.crashreport.setText("Warning!! Drones are too close");
+    	}
+    		else {
+    			serverr.crashreport.setText("Drones are safe");
+    		}
+    	}
+    }
+
+	@Override
+	public void adjustmentValueChanged(AdjustmentEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		// TODO Auto-generated method stub
+		System.exit(0);
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+}
