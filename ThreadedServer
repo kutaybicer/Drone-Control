@@ -1,0 +1,149 @@
+
+package ee402;
+
+import java.net.*;
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class ThreadedServer extends Frame implements ActionListener, WindowListener, AdjustmentListener
+{
+
+	private static int portNumber = 5050;
+	
+	public Display display;
+	public TextField dronename, crashreport;
+	
+	public ThreadedServer() {
+		super("Server Display");
+		this.setLayout(new BorderLayout());
+		this.addWindowListener(this);
+		
+				
+		this.display = new Display(this);
+		this.add(BorderLayout.CENTER,display);
+		
+		this.dronename = new TextField(10);
+		this.add(BorderLayout.NORTH ,dronename);
+		
+		this.crashreport = new TextField(10);
+		this.add(BorderLayout.SOUTH ,crashreport);
+		
+		this.pack();
+		this.setVisible(true);
+	}
+	
+	
+	public static void main(String args[]) {
+		
+		ThreadedServer serverr = new ThreadedServer();
+		
+		boolean listening = true;
+        ServerSocket serverSocket = null;
+        
+
+        try 
+        {
+            serverSocket = new ServerSocket(portNumber);
+            System.out.println("New Server has started listening on port: " + portNumber );
+        } 
+        catch (IOException e) 
+        {
+            System.out.println("Cannot listen on port: " + portNumber + ", Exception: " + e);
+            System.exit(1);
+        }
+        
+
+        while (listening) 
+        {
+            Socket clientSocket = null;
+            try{
+            	System.out.println("**. Listening for a connection...");
+                clientSocket = serverSocket.accept();
+                System.out.println("00. <- Accepted socket connection from a client: ");
+                System.out.println("    <- with address: " + clientSocket.getInetAddress().toString());
+                System.out.println("    <- and port number: " + clientSocket.getPort());
+            } 
+            catch (IOException e){
+                System.out.println("XX. Accept failed: " + portNumber + e);
+                listening = false;   
+            }	
+            
+            ThreadedConnectionHandler con = new ThreadedConnectionHandler(clientSocket,serverr);
+            con.start(); 
+            System.out.println("02. -- Finished communicating with client:" + clientSocket.getInetAddress().toString());
+        }
+
+        try 
+        {
+            System.out.println("04. -- Closing down the server socket gracefully.");
+            serverSocket.close();
+        } 
+        catch (IOException e) 
+        {
+            System.err.println("XX. Could not close server socket. " + e.getMessage());
+        }
+    }
+	
+	public void dronenameupdate1() {
+		this.dronename.setText("Drone name is A and dimension is 20_20 ");
+	}
+	public void dronenameupdate2() {
+		this.dronename.setText("Drone name is B and dimension is 20_20 ");
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void adjustmentValueChanged(AdjustmentEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		// TODO Auto-generated method stub
+		System.exit(0);
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}
