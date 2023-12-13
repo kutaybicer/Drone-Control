@@ -1,0 +1,347 @@
+package ee402;
+import java.net.*;
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class Client extends Frame implements ActionListener, WindowListener, Serializable, Runnable {
+	
+	private static final long serialVersionUID = 1L;
+	private static int portNumber = 5050;
+    private Socket socket = null;
+    private ObjectOutputStream os = null;
+    private ObjectInputStream is = null;
+    private TextField tx,ty,tz,ts,robotstatus,batterystatus,warningbattery,speedcheck;
+    private Button l,r,u,d,zu,zd,su,sd;
+    private Drone drone1 = new Drone('A',50,50,100,1,20,20,150,10);
+    private Drone dronethread = new Drone('A',50,50,100,1,20,20,150,10);
+    private Thread thread1;
+
+    public Client(String serverIP) {
+    	super ("Drone UI");
+    	this.setLayout(new FlowLayout());
+    	
+    	this.addWindowListener(this);
+    	
+
+    	this.tx= new TextField(6);			
+    	this.add(tx);
+    	this.updatex();
+    	
+    	this.ty= new TextField(6);
+    	this.add(ty);
+    	this.updatey();
+    	
+    	this.tz= new TextField(6);
+    	this.add(tz);
+    	this.updatez();
+    	
+    	this.ts= new TextField(6);
+    	this.add(ts);
+    	this.updatespeed();
+    	
+    	this.robotstatus= new TextField(25);
+    	this.add(robotstatus);
+    	
+    	this.batterystatus= new TextField(10);
+    	this.add(batterystatus);
+    	updatebattery();
+    	
+    	this.warningbattery= new TextField(10);
+    	this.add(warningbattery);
+    	
+    	this.speedcheck= new TextField(15);
+    	this.add(speedcheck);
+    	  	
+    	
+    	l = new Button ("X decrease");		
+    	this.add(l);
+    	l.addActionListener(this);
+    	
+    	r = new Button ("X increase");
+     	this.add(r);
+     	r.addActionListener(this);
+     	
+    	u = new Button ("Y increase");
+     	this.add(u);
+     	u.addActionListener(this);
+     	
+    	d = new Button ("Y decrease");
+     	this.add(d);
+     	d.addActionListener(this);
+     	
+     	zu = new Button ("Z increase");
+     	this.add(zu);
+    	zu.addActionListener(this);
+    	
+     	zd = new Button ("Z Decrease");
+     	this.add(zd);
+    	zd.addActionListener(this);
+    	
+    	su = new Button ("Speed Up");
+     	this.add(su);
+     	su.addActionListener(this);
+     	
+     	sd = new Button ("Speed Down");
+     	this.add(sd);
+     	sd.addActionListener(this);
+     	
+    	
+    	this.pack();
+    	this.setVisible(true);
+    	
+    	this.thread1 = new Thread(this);
+    	
+    	
+    	if (!connectToServer(serverIP)) {
+    		System.out.println("XX. Failed to open socket connection to: " + serverIP);            
+    	}
+    }
+
+    private boolean connectToServer(String serverIP) {
+    	
+    	this.thread1.start();
+    	
+    	try { 
+    		this.socket = new Socket(serverIP,portNumber);
+    		this.os = new ObjectOutputStream(this.socket.getOutputStream());
+    		this.is = new ObjectInputStream(this.socket.getInputStream());
+    		System.out.println("00. -> Connected to Server:" + this.socket.getInetAddress() 
+    				+ " on port: " + this.socket.getPort());
+    		System.out.println("    -> from local address: " + this.socket.getLocalAddress() 
+    				+ " and port: " + this.socket.getLocalPort());
+    	} 
+        catch (Exception e) {
+        	System.out.println("XX. Failed to Connect to the Server at port: " + portNumber);
+        	System.out.println("    Exception: " + e.toString());	
+        	return false;
+        }
+		return true;
+    }
+
+    private void communication() {
+    	
+    	System.out.println("01. -> Sending Command (" + drone1 + ") to the server...");
+    	this.send(drone1);
+    	try{
+    		drone1 = (Drone) receive();
+    		System.out.println("05. <- The Server responded with: ");
+    		System.out.println("    <- " + drone1);
+    	}
+    	catch (Exception e){
+    		System.out.println("XX. There was an invalid object sent back from the server");
+    	}
+    	System.out.println("06. -- Disconnected from Server.");
+    }
+	
+    private void send(Object o) {
+		try {
+		    System.out.println("02. -> Sending an object...");
+		    os.writeObject(o);
+		    os.flush();
+		} 
+	    catch (Exception e) {
+		    System.out.println("XX. Exception Occurred on Sending:" +  e.toString());
+		}
+    }
+
+    private Object receive() 
+    {
+		Object o = null ;
+		try {
+			System.out.println("03. -- About to receive an object...");
+		    o = is.readObject();
+		    System.out.println("04. <- Object received...");	
+		    System.out.println("O : "+o);
+		} 
+	    catch (Exception e) {
+		    System.out.println("XX. Exception Occurred on Receiving:" + e.toString());
+		}
+		return o;
+    }
+
+    public static void main(String args[]) 
+    {
+    	System.out.println("**. Java Client Application - EE402 OOP Module, DCU");
+    	if(args.length==1){
+    		Client theApp = new Client(args[0]);
+		    theApp.communication();
+		}
+    	else
+    	{
+    		System.out.println("Error: you must provide the address of the server");
+    		System.out.println("Usage is:  java Client x.x.x.x  (e.g. java Client 192.168.7.2)");
+    		System.out.println("      or:  java Client hostname (e.g. java Client localhost)");
+    	}    
+    	System.out.println("**. End of Application.");
+    }
+    
+    private void updatex() {
+		this.tx.setText("X: "+drone1.x);
+    }
+    private void updatey() {
+		this.ty.setText("Y: "+drone1.y);
+    }
+    private void updatez() {
+		this.tz.setText("Z: "+drone1.z);
+    }
+    private void updatespeed() {
+		this.ts.setText("Speed: "+drone1.speed);
+			if(drone1.speed > drone1.speedlimit) {
+				this.speedcheck.setText("You Are Too Fast Be Careful");
+		}
+    }
+    private void updatebattery() {
+    	this.batterystatus.setText("Battery : "+drone1.battery);
+    		if(drone1.battery < 25) {
+    			this.warningbattery.setText("Drone A Battery Low !!");
+    	}
+    }
+    
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		System.exit(0);
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource().equals(su)) {
+			drone1.speed = drone1.speed + 1;
+			updatespeed();
+	}
+		if(e.getSource().equals(sd)) {
+			drone1.speed = drone1.speed - 1;
+			updatespeed();
+	}
+		if(e.getSource().equals(l)) {
+			drone1.x = drone1.x - drone1.speed;
+			
+			drone1.battery = drone1.battery - drone1.speed;
+			updatebattery();
+		
+		updatex();
+		communication();
+		
+	}
+		if(e.getSource().equals(r)) {
+			drone1.x = drone1.x + drone1.speed;
+			
+			drone1.battery = drone1.battery - drone1.speed;
+			updatebattery();
+	
+		updatex();
+		communication();
+		
+	}
+		if(e.getSource().equals(u)) {
+			drone1.y = drone1.y + drone1.speed;
+			
+			drone1.battery = drone1.battery - drone1.speed;
+			updatebattery();
+
+		updatey();
+		communication();
+		
+	}
+		if(e.getSource().equals(d)) {
+			drone1.y = drone1.y - drone1.speed;		
+			
+			drone1.battery = drone1.battery - drone1.speed;
+			updatebattery();
+			
+		updatey();
+		communication();
+		
+	}
+		if(e.getSource().equals(zd)) {
+			drone1.z =drone1.z - drone1.speed;
+			
+			drone1.battery = drone1.battery - drone1.speed;
+			updatebattery();
+			
+			updatez();
+			communication();
+		}
+		if(e.getSource().equals(zu)) {
+			drone1.z = drone1.z + drone1.speed;
+			
+			drone1.battery = drone1.battery - drone1.speed;
+			updatebattery();
+			
+			updatez();
+			communication();
+	}
+}
+
+	//@Override
+	public void run() {
+		 //TODO Auto-generated method stub
+		while(true) {
+			try {
+				Thread.sleep(10);
+				}
+				catch (InterruptedException e) {
+					System.out.println("Thread was Interrupted!");
+				}
+			
+			if(drone1 != dronethread) {
+				this.robotstatus.setText("Robot has been moved in the last 10 seconds");
+				this.dronethread = drone1;
+				
+				try {
+				Thread.sleep(10000);
+				}
+				catch (InterruptedException e) {
+					System.out.println("Thread was Interrupted!");
+				}
+			}
+			if(drone1 == dronethread);
+				this.robotstatus.setText("Robot was not moved in the last 10 seconds");
+				this.dronethread = drone1;	
+				
+				try {
+					Thread.sleep(10000);
+					}
+					catch (InterruptedException e) {
+						System.out.println("Thread was Interrupted!");
+					}
+				}
+		}
+	}
