@@ -1,0 +1,28 @@
+package ee402;
+
+import java.io.Serializable;
+
+public class Drone implements Serializable {
+
+		char name;
+		int x;
+		int y;
+		int z;
+		int speed;
+		int xdim;
+		int ydim;
+		int battery;
+		int speedlimit;
+	
+	public Drone(char name, int x,int y, int z, int speed, int xdim, int ydim, int battery, int speedlimit) {
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.speed = speed;
+		this.xdim = xdim;
+		this.ydim = ydim;
+		this.battery = battery;
+		this.speedlimit = speedlimit;
+	}
+}
