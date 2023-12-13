@@ -1,0 +1,119 @@
+package ee402;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.Canvas;
+import java.awt.Graphics;
+
+public class Display extends Canvas implements MouseListener {
+	
+	ThreadedServer server;
+	
+	public int  xdisplay,ydisplay,x2display,y2display;
+	
+	int[] arrayx1 = {0,0,0,0};
+	int[] arrayy1 = {0,0,0,0};
+	int[] arrayx2 = {0,0,0,0};
+	int[] arrayy2 = {0,0,0,0};
+	public int counter = 0;
+	public int counter2 = 0;
+	
+	public Display(ThreadedServer server) {
+		
+		this.server = server;
+		this.setPreferredSize(new Dimension(300,300));
+		this.addMouseListener(this);
+	}
+	
+	public void setxyvalues(int xdisplay, int ydisplay) {
+		
+		this.xdisplay = xdisplay;
+		this.ydisplay = ydisplay;
+		
+		if (counter <=3) {
+			arrayx1[counter] = xdisplay+8;
+			arrayy1[counter] = ydisplay+8;
+			counter = counter +1;
+			if(counter ==4) {
+				counter = 0;
+			}
+
+		this.repaint();
+
+	}
+	}
+	public void setxyvalues2(int x2display, int y2display) {
+		
+		this.x2display = x2display;
+		this.y2display = y2display;
+		
+		if (counter <=3) {
+			arrayx2[counter2] = x2display+8;
+			arrayy2[counter2] = y2display+8;
+			counter2 = counter2 +1;
+			if(counter2 ==4) {
+				counter2 = 0;
+			}
+		}	
+
+		this.repaint();
+
+	}
+	
+	
+	public void paint(Graphics g) {
+		g.setColor(Color.blue);
+		g.fillOval(xdisplay,ydisplay,20,20);
+		g.fillOval(x2display,y2display,20,20);
+		
+		g.setColor(Color.red);
+		g.fillOval(arrayx2[0],arrayy2[0],5,5);
+		g.fillOval(arrayx2[1],arrayy2[1],5,5);
+		g.fillOval(arrayx2[2],arrayy2[2],5,5);
+		g.fillOval(arrayx2[3],arrayy2[3],5,5);
+		
+		g.setColor(Color.green);
+		g.fillOval(arrayx1[0],arrayy1[0],5,5);
+		g.fillOval(arrayx1[1],arrayy1[1],5,5);
+		g.fillOval(arrayx1[2],arrayy1[2],5,5);
+		g.fillOval(arrayx1[3],arrayy1[3],5,5);
+		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getX()-8 <= xdisplay + 10 && e.getX()-8 >= xdisplay-10 && e.getY()-8 <= ydisplay+10 && e.getY()-8 >= ydisplay - 10) {
+
+			server.dronenameupdate1();
+		}
+		if(e.getX()-8 <= x2display + 10 && e.getX()-8 >= x2display-10 && e.getY()-8 <= y2display+10 && e.getY()-8 >= y2display - 10) {
+
+			server.dronenameupdate2();
+		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+}
